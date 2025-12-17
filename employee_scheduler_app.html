@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>نظام جدولة الموظفين الذكي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
+
+      body {
+        font-family: 'Cairo', sans-serif;
+        background-color: #0f172a; /* slate-900 */
+        color: #e2e8f0; /* slate-200 */
+      }
+
+      .glass {
+        background: rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(51, 65, 85, 0.5); /* slate-700 */
+      }
+
+      .card-hover {
+        transition: all 0.4s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      }
+
+      input[type='number']::-webkit-inner-spin-button,
+      input[type='number']::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      input[type='number'] {
+        -moz-appearance: textfield;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <div class="container mx-auto px-4 py-12 max-w-7xl">
+      <!-- Header -->
+      <div class="text-center mb-12">
+        <h1 class="text-5xl md:text-6xl font-extrabold text-white mb-4">
+          نظام جدولة الموظفين الذكي
+        </h1>
+        <p class="text-xl text-slate-400 font-medium">
+          جدولة ذكية بسيطة مع احترام تفضيلات الجميع
+        </p>
+      </div>
+
+      <!-- Settings Panel -->
+      <div class="glass rounded-3xl shadow-2xl p-8 mb-10 card-hover">
+        <h2 class="text-3xl font-bold mb-8 flex items-center text-white">
+          <i class="fas fa-cog ml-3 text-3xl"></i>
+          إعدادات الجدولة
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div>
+            <label class="block text-lg font-semibold mb-3 text-slate-300"
+              >عدد الموظفين</label
+            >
+            <input
+              type="number"
+              id="numEmployees"
+              value="5"
+              min="2"
+              max="12"
+              class="w-full px-6 py-4 text-lg bg-slate-800 border border-slate-600 rounded-2xl focus:border-cyan-500 focus:outline-none transition" />
+          </div>
+          <div>
+            <label class="block text-lg font-semibold mb-3 text-slate-300"
+              >الحد الأدنى يومياً</label
+            >
+            <input
+              type="number"
+              id="minDaily"
+              value="3"
+              min="1"
+              class="w-full px-6 py-4 text-lg bg-slate-800 border border-slate-600 rounded-2xl focus:border-cyan-500 focus:outline-none transition" />
+          </div>
+          <div>
+            <label class="block text-lg font-semibold mb-3 text-slate-300"
+              >الحد الأقصى أسبوعياً</label
+            >
+            <input
+              type="number"
+              id="maxWeekly"
+              value="5"
+              min="1"
+              max="7"
+              class="w-full px-6 py-4 text-lg bg-slate-800 border border-slate-600 rounded-2xl focus:border-cyan-500 focus:outline-none transition" />
+          </div>
+        </div>
+        <button
+          onclick="updateEmployeeCount()"
+          class="mt-8 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-4 px-10 rounded-2xl transition shadow-lg">
+          <i class="fas fa-sync-alt ml-3"></i> تحديث عدد الموظفين
+        </button>
+      </div>
+
+      <!-- Preferences Input -->
+      <div class="glass rounded-3xl shadow-2xl p-8 mb-10 card-hover">
+        <h2 class="text-3xl font-bold mb-8 flex items-center text-white">
+          <i class="fas fa-users ml-3 text-3xl"></i>
+          تفضيلات الموظفين
+        </h2>
+
+        <div
+          class="bg-slate-800/50 border border-slate-700 p-6 rounded-2xl mb-8">
+          <p class="text-lg font-bold mb-4">دليل التفضيلات</p>
+          <div class="grid grid-cols-3 gap-6">
+            <div class="flex items-center">
+              <i class="fas fa-thumbs-up text-2xl text-green-500 ml-3"></i>
+              <div>
+                <strong>+1</strong>
+                <span class="text-slate-400">يفضل العمل</span>
+              </div>
+            </div>
+            <div class="flex items-center">
+              <i class="fas fa-minus text-2xl text-gray-500 ml-3"></i>
+              <div>
+                <strong>0</strong> <span class="text-slate-400">محايد</span>
+              </div>
+            </div>
+            <div class="flex items-center">
+              <i class="fas fa-thumbs-down text-2xl text-red-500 ml-3"></i>
+              <div>
+                <strong>-1</strong> <span class="text-slate-400">لا يفضل</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-2xl">
+          <table class="w-full">
+            <thead>
+              <tr class="bg-slate-800 text-slate-300">
+                <th class="px-8 py-5 text-lg font-bold">اسم الموظف</th>
+                <th class="px-6 py-5">السبت</th>
+                <th class="px-6 py-5">الأحد</th>
+                <th class="px-6 py-5">الاثنين</th>
+                <th class="px-6 py-5">الثلاثاء</th>
+                <th class="px-6 py-5">الأربعاء</th>
+                <th class="px-6 py-5">الخميس</th>
+                <th class="px-6 py-5">الجمعة</th>
+              </tr>
+            </thead>
+            <tbody
+              id="preferencesBody"
+              class="divide-y divide-slate-700"></tbody>
+          </table>
+        </div>
+
+        <div class="mt-10 flex flex-col md:flex-row gap-6">
+          <button
+            onclick="solveSchedule()"
+            class="flex-1 bg-gradient-to-r from-cyan-600 to-blue-700 hover:from-cyan-500 hover:to-blue-600 text-white font-bold py-5 px-8 rounded-2xl transition shadow-xl text-xl">
+            <i class="fas fa-search ml-4"></i> إيجاد الجدول الأمثل
+          </button>
+          <button
+            onclick="randomFill()"
+            class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-5 px-8 rounded-2xl transition shadow-xl text-xl">
+            <i class="fas fa-dice ml-4"></i> ملء عشوائي
+          </button>
+          <button
+            onclick="clearAll()"
+            class="flex-1 bg-red-800 hover:bg-red-700 text-white font-bold py-5 px-8 rounded-2xl transition shadow-xl text-xl">
+            <i class="fas fa-trash ml-4"></i> مسح الكل
+          </button>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div id="resultsSection" class="hidden">
+        <div class="glass rounded-3xl shadow-2xl p-8 mb-10 card-hover">
+          <h2 class="text-3xl font-bold mb-8 flex items-center text-white">
+            <i class="fas fa-chart-bar ml-3 text-3xl"></i>
+            إحصائيات الحل
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div
+              class="bg-slate-800 p-6 rounded-2xl text-center border border-slate-700">
+              <p class="text-lg text-slate-400">مجموع الرضا</p>
+              <p
+                id="totalSatisfaction"
+                class="text-5xl font-bold text-cyan-400 mt-2">
+                0
+              </p>
+            </div>
+            <div
+              class="bg-slate-800 p-6 rounded-2xl text-center border border-slate-700">
+              <p class="text-lg text-slate-400">متوسط الرضا</p>
+              <p
+                id="avgSatisfaction"
+                class="text-5xl font-bold text-cyan-400 mt-2">
+                0
+              </p>
+            </div>
+            <div
+              class="bg-slate-800 p-6 rounded-2xl text-center border border-slate-700">
+              <p class="text-lg text-slate-400">حالة القيود</p>
+              <p
+                id="constraintStatus"
+                class="text-5xl font-bold text-green-500 mt-2">
+                <i class="fas fa-check"></i>
+              </p>
+            </div>
+            <div
+              class="bg-slate-800 p-6 rounded-2xl text-center border border-slate-700">
+              <p class="text-lg text-slate-400">وقت الحل</p>
+              <p id="solveTime" class="text-5xl font-bold text-cyan-400 mt-2">
+                0ms
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass rounded-3xl shadow-2xl p-8 card-hover">
+          <h2 class="text-3xl font-bold mb-8 flex items-center text-white">
+            <i class="fas fa-table ml-3 text-3xl"></i>
+            الجدول الأمثل
+          </h2>
+          <div class="overflow-x-auto rounded-2xl">
+            <table class="w-full">
+              <thead>
+                <tr class="bg-slate-800 text-slate-300">
+                  <th class="p-3 text-xl">الموظف</th>
+                  <th class="p-2">السبت</th>
+                  <th class="p-2">الأحد</th>
+                  <th class="p-2">الاثنين</th>
+                  <th class="p-2">الثلاثاء</th>
+                  <th class="p-2">الأربعاء</th>
+                  <th class="p-2">الخميس</th>
+                  <th class="p-2">الجمعة</th>
+                  <th class="px-5 py-3">الأيام</th>
+                  <th class="px-5 py-3">الرضا</th>
+                </tr>
+              </thead>
+              <tbody
+                id="scheduleBody"
+                class="divide-y divide-slate-700"></tbody>
+            </table>
+          </div>
+
+          <div class="mt-10 flex flex-col md:flex-row gap-6">
+            <button
+              onclick="exportToExcel()"
+              class="flex-1 bg-cyan-700 hover:bg-cyan-600 text-white font-bold py-5 px-8 rounded-2xl transition shadow-xl text-xl">
+              <i class="fas fa-file-export ml-4"></i> تصدير إلى Excel
+            </button>
+            <button
+              onclick="printSchedule()"
+              class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-5 px-8 rounded-2xl transition shadow-xl text-xl">
+              <i class="fas fa-print ml-4"></i> طباعة
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const days = [
+        'السبت',
+        'الأحد',
+        'الاثنين',
+        'الثلاثاء',
+        'الأربعاء',
+        'الخميس',
+        'الجمعة',
+      ];
+      let currentSchedule = null;
+      let preferences = [];
+      let employeeNames = [];
+
+      function updateEmployeeCount() {
+        const numEmployees = parseInt(
+          document.getElementById('numEmployees').value
+        );
+        const tbody = document.getElementById('preferencesBody');
+        tbody.innerHTML = '';
+        preferences = [];
+        employeeNames = [];
+
+        for (let i = 0; i < numEmployees; i++) {
+          const row = document.createElement('tr');
+          row.className = 'hover:bg-slate-800/50 transition';
+
+          // عمود اسم الموظف
+          const nameCell = document.createElement('td');
+          nameCell.className = 'p-3';
+          const nameInput = document.createElement('input');
+          nameInput.type = 'text';
+          nameInput.value = `موظف ${i + 1}`;
+          nameInput.className =
+            'w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-xl focus:border-cyan-500 focus:outline-none text-lg font-medium';
+          nameInput.onchange = () =>
+            (employeeNames[i] = nameInput.value || `موظف ${i + 1}`);
+          nameCell.appendChild(nameInput);
+          row.appendChild(nameCell);
+
+          const empPrefs = [];
+          for (let j = 0; j < 7; j++) {
+            const cell = document.createElement('td');
+            cell.className = 'p-2 text-center';
+
+            const select = document.createElement('select');
+            select.className =
+              'w-32 px-2 py-2 bg-slate-700 border border-slate-600 rounded-xl focus:border-cyan-500 focus:outline-none text-lg';
+            select.innerHTML = `
+                        <option value="1">+1</option>
+                        <option value="0" selected>0</option>
+                        <option value="-1">-1</option>
+                    `;
+            select.onchange = () =>
+              updatePreference(i, j, parseInt(select.value));
+            cell.appendChild(select);
+            row.appendChild(cell);
+
+            empPrefs.push(0);
+          }
+
+          tbody.appendChild(row);
+          preferences.push(empPrefs);
+          employeeNames.push(`موظف ${i + 1}`);
+        }
+      }
+
+      function updatePreference(emp, day, value) {
+        preferences[emp][day] = value;
+      }
+
+      function randomFill() {
+        const selects = document.querySelectorAll('#preferencesBody select');
+        selects.forEach((select, idx) => {
+          const values = [-1, 0, 1];
+          const randomValue = values[Math.floor(Math.random() * values.length)];
+          select.value = randomValue;
+          const emp = Math.floor(idx / 7);
+          const day = idx % 7;
+          preferences[emp][day] = randomValue;
+        });
+
+        Swal.fire({
+          icon: 'success',
+          title: 'تم الملء العشوائي',
+          timer: 1500,
+          showConfirmButton: false,
+          background: '#1e293b',
+          color: '#e2e8f0',
+        });
+      }
+
+      function clearAll() {
+        Swal.fire({
+          title: 'مسح التفضيلات؟',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'نعم',
+          cancelButtonText: 'لا',
+          background: '#1e293b',
+          color: '#e2e8f0',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            updateEmployeeCount(); // يعيد التهيئة بالكامل
+            document.getElementById('resultsSection').classList.add('hidden');
+            Swal.fire({
+              icon: 'success',
+              title: 'تم المسح',
+              timer: 1500,
+              showConfirmButton: false,
+              background: '#1e293b',
+              color: '#e2e8f0',
+            });
+          }
+        });
+      }
+
+      function solveSchedule() {
+        Swal.fire({
+          title: 'جاري البحث عن أفضل جدول...',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading(),
+          background: '#1e293b',
+          color: '#e2e8f0',
+        });
+
+        const startTime = performance.now();
+        const minDaily = parseInt(document.getElementById('minDaily').value);
+        const maxWeekly = parseInt(document.getElementById('maxWeekly').value);
+
+        let bestSchedule = null;
+        let bestScore = -Infinity;
+
+        for (let attempt = 0; attempt < 2000; attempt++) {
+          let schedule = Array(preferences.length)
+            .fill()
+            .map(() => Array(7).fill(0));
+
+          for (let day = 0; day < 7; day++) {
+            let candidates = [];
+            for (let emp = 0; emp < preferences.length; emp++) {
+              const worked = schedule[emp].reduce((a, b) => a + b, 0);
+              if (worked >= maxWeekly) continue;
+
+              const pref = preferences[emp][day];
+              // عقوبة إضافية إذا كان الموظف سيعمل يوم لا يفضله وعدد أيامه كثير نسبيًا
+              let penalty = 0;
+              if (pref === -1 && worked >= 3) penalty = -10; // تجنب وضع موظف في يوم يكرهه إذا كان لديه أيام كثيرة بالفعل
+
+              candidates.push({ emp, score: pref + penalty, worked });
+            }
+
+            candidates.sort((a, b) => b.score - a.score || a.worked - b.worked);
+
+            let assigned = 0;
+            for (let i = 0; assigned < minDaily && i < candidates.length; i++) {
+              schedule[candidates[i].emp][day] = 1;
+              assigned++;
+            }
+          }
+
+          if (isValidSchedule(schedule, minDaily, maxWeekly)) {
+            const score = calculateEnhancedScore(schedule);
+            if (score > bestScore) {
+              bestScore = score;
+              bestSchedule = schedule.map((r) => [...r]);
+            }
+          }
+        }
+
+        const endTime = performance.now();
+        Swal.close();
+
+        if (bestSchedule) {
+          currentSchedule = bestSchedule;
+          displaySchedule(bestSchedule, endTime - startTime);
+          Swal.fire({
+            icon: 'success',
+            title: 'تم إيجاد الجدول الأمثل!',
+            text: `مجموع الرضا: ${bestScore}`,
+            timer: 3000,
+            showConfirmButton: false,
+            background: '#1e293b',
+            color: '#e2e8f0',
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'لا يوجد حل',
+            text: 'جرب تعديل القيود أو التفضيلات.',
+            background: '#1e293b',
+            color: '#e2e8f0',
+          });
+        }
+      }
+
+      function isValidSchedule(schedule, minDaily, maxWeekly) {
+        for (let day = 0; day < 7; day++) {
+          const count = schedule.reduce((s, emp) => s + emp[day], 0);
+          if (count < minDaily) return false;
+        }
+        for (let emp = 0; emp < schedule.length; emp++) {
+          const total = schedule[emp].reduce((a, b) => a + b, 0);
+          if (total > maxWeekly) return false;
+        }
+        return true;
+      }
+
+      function calculateEnhancedScore(schedule) {
+        let score = 0;
+        for (let emp = 0; emp < schedule.length; emp++) {
+          let workedDays = 0;
+          for (let day = 0; day < 7; day++) {
+            if (schedule[emp][day] === 1) {
+              workedDays++;
+              const pref = preferences[emp][day];
+              score += pref;
+
+              // عقوبة قوية إذا عمل في يوم يكرهه وعدد أيامه ≥ 3
+              if (pref === -1 && workedDays >= 3) score -= 5;
+            }
+          }
+        }
+        return score;
+      }
+
+      function displaySchedule(schedule, solveTime) {
+        document.getElementById('resultsSection').classList.remove('hidden');
+
+        const totalScore = calculateEnhancedScore(schedule);
+        const avgScore = (totalScore / preferences.length).toFixed(1);
+
+        document.getElementById('totalSatisfaction').textContent = totalScore;
+        document.getElementById('avgSatisfaction').textContent = avgScore;
+        document.getElementById('constraintStatus').innerHTML =
+          '<i class="fas fa-check"></i>';
+        document.getElementById('solveTime').textContent =
+          Math.round(solveTime) + 'ms';
+
+        const tbody = document.getElementById('scheduleBody');
+        tbody.innerHTML = '';
+
+        for (let emp = 0; emp < schedule.length; emp++) {
+          const row = document.createElement('tr');
+          row.className = 'hover:bg-slate-800/50 transition';
+
+          const nameCell = document.createElement('td');
+          nameCell.className = 'px-8 py-6 font-bold text-xl';
+          nameCell.textContent = employeeNames[emp];
+          row.appendChild(nameCell);
+
+          let daysCount = 0;
+          let empScore = 0;
+
+          for (let day = 0; day < 7; day++) {
+            const cell = document.createElement('td');
+            cell.className = 'px-6 py-6 text-center text-2xl';
+
+            if (schedule[emp][day] === 1) {
+              daysCount++;
+              const pref = preferences[emp][day];
+              empScore += pref;
+
+              if (pref === 1) cell.className += ' text-green-400';
+              else if (pref === 0) cell.className += ' text-yellow-400';
+              else cell.className += ' text-red-400';
+
+              cell.innerHTML = '<i class="fas fa-check"></i>';
+            } else {
+              cell.innerHTML = '—';
+            }
+            row.appendChild(cell);
+          }
+
+          const daysCell = document.createElement('td');
+          daysCell.className = 'px-8 py-6 text-center font-bold text-xl';
+          daysCell.textContent = daysCount;
+          row.appendChild(daysCell);
+
+          const scoreCell = document.createElement('td');
+          scoreCell.className = 'px-8 py-6 text-center font-bold text-xl';
+          scoreCell.textContent = empScore > 0 ? '+' + empScore : empScore;
+          scoreCell.className +=
+            empScore > 0
+              ? ' text-green-400'
+              : empScore < 0
+              ? ' text-red-400'
+              : ' text-gray-400';
+          row.appendChild(scoreCell);
+
+          tbody.appendChild(row);
+        }
+
+        // صف المجموع اليومي
+        const summaryRow = document.createElement('tr');
+        summaryRow.className = 'bg-slate-800 font-bold';
+
+        const labelCell = document.createElement('td');
+        labelCell.className = 'px-8 py-6 text-center text-lg';
+        labelCell.textContent = 'المجموع اليومي';
+        summaryRow.appendChild(labelCell);
+
+        for (let day = 0; day < 7; day++) {
+          const count = schedule.reduce((s, e) => s + e[day], 0);
+          const cell = document.createElement('td');
+          cell.className = 'px-6 py-6 text-center text-2xl';
+          cell.textContent = count;
+          cell.className +=
+            count >= parseInt(document.getElementById('minDaily').value)
+              ? ' text-cyan-400'
+              : ' text-red-400';
+          summaryRow.appendChild(cell);
+        }
+
+        const empty1 = document.createElement('td');
+        empty1.className = 'bg-slate-800';
+        summaryRow.appendChild(empty1);
+        const totalCell = document.createElement('td');
+        totalCell.className = 'px-8 py-6 text-center text-3xl text-cyan-400';
+        totalCell.textContent = totalScore;
+        summaryRow.appendChild(totalCell);
+
+        tbody.appendChild(summaryRow);
+
+        document
+          .getElementById('resultsSection')
+          .scrollIntoView({ behavior: 'smooth' });
+      }
+
+      function exportToExcel() {
+        if (!currentSchedule) return;
+
+        let csv =
+          'الموظف,السبت,الأحد,الاثنين,الثلاثاء,الأربعاء,الخميس,الجمعة,عدد الأيام,الرضا\n';
+
+        for (let emp = 0; emp < currentSchedule.length; emp++) {
+          let row = employeeNames[emp] + ',';
+          let days = 0,
+            score = 0;
+          for (let day = 0; day < 7; day++) {
+            const val = currentSchedule[emp][day] ? 'نعم' : 'لا';
+            row += val + ',';
+            if (currentSchedule[emp][day]) {
+              days++;
+              score += preferences[emp][day];
+            }
+          }
+          row += days + ',' + (score > 0 ? '+' : '') + score + '\n';
+          csv += row;
+        }
+
+        const blob = new Blob(['\ufeff' + csv], {
+          type: 'text/csv;charset=utf-8;',
+        });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'جدول_الموظفين.csv';
+        link.click();
+
+        Swal.fire({
+          icon: 'success',
+          title: 'تم التصدير',
+          timer: 1500,
+          showConfirmButton: false,
+          background: '#1e293b',
+          color: '#e2e8f0',
+        });
+      }
+
+      function printSchedule() {
+        window.print();
+      }
+
+      updateEmployeeCount();
+    </script>
+  </body>
+</html>
