@@ -3,25 +3,70 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="نظام جدولة الموظفين الذكي — واجهة عربية RTL لتوليد جداول عمل متوازنة مع احترام تفضيلات الموظفين، تصدير Excel/CSV، طباعة، وحفظ كصورة. مناسب للاستخدام المؤسسي والأكاديمي." />
+    <meta
+      name="keywords"
+      content="جدولة الموظفين, جدول المناوبات, Employee Scheduling, roster, Excel export, CSV, Tailwind, RTL, Arabic" />
+    <meta name="author" content="A7med Hussien" />
+    <meta name="robots" content="index,follow" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <meta name="msapplication-TileColor" content="#191B21" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ar_AR" />
+    <meta property="og:site_name" content="نظام جدولة الموظفين الذكي" />
+    <meta
+      property="og:title"
+      content="نظام جدولة الموظفين الذكي — إنشاء جداول متوازنة مع احترام التفضيلات" />
+    <meta
+      property="og:description"
+      content="نظام جدولة الموظفين الذكي — توليد جداول عمل متوازنة، تصدير XLSX/CSV، إمكانية الطباعة وحفظ كصورة. متوافق RTL ومصمم للجهات والمؤسسات." />
+    <meta
+      property="og:image"
+      content="https://employees-schedule-three.vercel.app/scheduler-preview.png?v=2" />
+
+    <meta
+      name="twitter:card"
+      content="https://employees-schedule-three.vercel.app/scheduler-preview.png?v=2" />
+    <meta
+      name="twitter:description"
+      content="تطبيق عربي لإنشاء جداول عمل متوازنة مع مراعاة تفضيلات الموظفين — تصدير، طباعة، وحفظ كصورة." />
     <title>نظام جدولة الموظفين الذكي</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
 
+      :root {
+        --primary-bg: #191b21;
+        --secondary-bg: #23272f;
+        --main-color: #0d6efd;
+        --main-hover: #0b5ed7;
+        --text-light: #f8f9fa;
+        --text-muted: #adb5bd;
+        --border-color: #343a40;
+        --input-bg: #2c3038;
+      }
+
       body {
         font-family: 'Cairo', sans-serif;
-        background-color: #0f172a; /* slate-900 */
-        color: #e2e8f0; /* slate-200 */
+        background-color: var(--primary-bg);
+        color: var(--text-light);
       }
 
       .glass {
-        background: rgba(15, 23, 42, 0.7);
+        background: rgba(35, 39, 47, 0.7);
+        -webkit-backdrop-filter: blur(12px);
         backdrop-filter: blur(12px);
-        border: 1px solid rgba(51, 65, 85, 0.5); /* slate-700 */
+        border: 1px solid rgba(52, 58, 64, 0.5);
       }
 
       .card-hover {
@@ -38,229 +83,325 @@
         margin: 0;
       }
       input[type='number'] {
+        -webkit-appearance: textfield;
         -moz-appearance: textfield;
+      }
+
+      select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23adb5bd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: left 12px center;
+        background-size: 12px;
+        padding-left: 36px !important;
+      }
+
+      option[value='1'] {
+        color: #4ade80;
+        font-weight: bold;
+      }
+      option[value='0'] {
+        color: #fbbf24;
+      }
+      option[value='-1'] {
+        color: #f87171;
+        font-weight: bold;
+      }
+
+      @media print {
+        body > *:not(#printSection) {
+          display: none !important;
+        }
+
+        #printSection {
+          display: block !important;
+          width: 100%;
+          padding: 20px;
+        }
+
+        #printSection h2 {
+          font-size: 24pt;
+          text-align: center;
+          margin-bottom: 30px;
+          color: black !important;
+        }
+
+        #printSection table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 12pt;
+        }
+
+        #printSection th,
+        #printSection td {
+          border: 1px solid black;
+          padding: 12px;
+          text-align: center;
+        }
+
+        #printSection th {
+          background-color: #f0f0f0;
+          font-weight: bold;
+        }
+
+        @page {
+          margin: 1cm;
+        }
       }
     </style>
   </head>
   <body class="min-h-screen">
-    <div class="container mx-auto px-4 py-12 max-w-7xl">
-      <!-- Header -->
-      <div class="text-center mb-12">
-        <h1 class="text-5xl md:text-6xl font-extrabold text-white mb-4">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+      <div class="text-center mb-10">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4">
           نظام جدولة الموظفين الذكي
         </h1>
-        <p class="text-xl text-slate-400 font-medium">
+        <p class="text-lg text-gray-400 font-medium">
           جدولة ذكية بسيطة مع احترام تفضيلات الجميع
         </p>
       </div>
 
-      <!-- Settings Panel -->
-      <div class="glass rounded-3xl shadow-2xl p-8 mb-10 card-hover">
-        <h2 class="text-3xl font-bold mb-8 flex items-center text-white">
-          <i class="fas fa-cog ml-3 text-3xl"></i>
+      <div class="glass rounded-3xl shadow-2xl p-6 mb-8 card-hover no-print">
+        <h2 class="text-2xl font-bold mb-6 flex items-center text-white">
+          <i class="fas fa-cog ml-3 text-2xl"></i>
           إعدادات الجدولة
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label class="block text-lg font-semibold mb-3 text-slate-300"
+            <label class="block text-base font-semibold mb-2 text-gray-300"
               >عدد الموظفين</label
             >
             <input
+              title="numEmployees"
               type="number"
               id="numEmployees"
               value="5"
               min="2"
               max="12"
-              class="w-full px-6 py-4 text-lg bg-slate-800 border border-slate-600 rounded-2xl focus:border-cyan-500 focus:outline-none transition" />
+              class="w-full px-5 py-3 text-base bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl focus:border-[var(--main-color)] focus:outline-none transition" />
           </div>
           <div>
-            <label class="block text-lg font-semibold mb-3 text-slate-300"
+            <label class="block text-base font-semibold mb-2 text-gray-300"
               >الحد الأدنى يومياً</label
             >
             <input
+              title="minDaily"
               type="number"
               id="minDaily"
               value="3"
               min="1"
-              class="w-full px-6 py-4 text-lg bg-slate-800 border border-slate-600 rounded-2xl focus:border-cyan-500 focus:outline-none transition" />
+              class="w-full px-5 py-3 text-base bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl focus:border-[var(--main-color)] focus:outline-none transition" />
           </div>
           <div>
-            <label class="block text-lg font-semibold mb-3 text-slate-300"
+            <label class="block text-base font-semibold mb-2 text-gray-300"
               >الحد الأقصى أسبوعياً</label
             >
             <input
+              title="maxWeekly"
               type="number"
               id="maxWeekly"
               value="5"
               min="1"
               max="7"
-              class="w-full px-6 py-4 text-lg bg-slate-800 border border-slate-600 rounded-2xl focus:border-cyan-500 focus:outline-none transition" />
+              class="w-full px-5 py-3 text-base bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl focus:border-[var(--main-color)] focus:outline-none transition" />
           </div>
         </div>
         <button
           onclick="updateEmployeeCount()"
-          class="mt-8 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-4 px-10 rounded-2xl transition shadow-lg">
+          class="mt-6 bg-[var(--main-color)] hover:bg-[var(--main-hover)] text-white font-bold py-3 px-8 rounded-xl transition shadow-lg">
           <i class="fas fa-sync-alt ml-3"></i> تحديث عدد الموظفين
         </button>
       </div>
 
-      <!-- Preferences Input -->
-      <div class="glass rounded-3xl shadow-2xl p-8 mb-10 card-hover">
-        <h2 class="text-3xl font-bold mb-8 flex items-center text-white">
-          <i class="fas fa-users ml-3 text-3xl"></i>
+      <div class="glass rounded-3xl shadow-2xl p-6 mb-8 card-hover no-print">
+        <h2 class="text-2xl font-bold mb-6 flex items-center text-white">
+          <i class="fas fa-users ml-3 text-2xl"></i>
           تفضيلات الموظفين
         </h2>
 
         <div
-          class="bg-slate-800/50 border border-slate-700 p-6 rounded-2xl mb-8">
-          <p class="text-lg font-bold mb-4">دليل التفضيلات</p>
-          <div class="grid grid-cols-3 gap-6">
-            <div class="flex items-center">
-              <i class="fas fa-thumbs-up text-2xl text-green-500 ml-3"></i>
-              <div>
-                <strong>+1</strong>
-                <span class="text-slate-400">يفضل العمل</span>
-              </div>
+          class="bg-[var(--secondary-bg)]/80 border border-[var(--border-color)] p-5 rounded-xl mb-6">
+          <p class="text-base font-bold mb-4">دليل التفضيلات</p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+            <div class="flex flex-col items-center">
+              <i class="fas fa-thumbs-up text-4xl text-green-400 mb-2"></i>
+              <strong class="text-2xl">+1</strong>
+              <span class="text-gray-400">يفضل العمل</span>
             </div>
-            <div class="flex items-center">
-              <i class="fas fa-minus text-2xl text-gray-500 ml-3"></i>
-              <div>
-                <strong>0</strong> <span class="text-slate-400">محايد</span>
-              </div>
+            <div class="flex flex-col items-center">
+              <i class="fas fa-minus text-4xl text-gray-400 mb-2"></i>
+              <strong class="text-2xl">0</strong>
+              <span class="text-gray-400">محايد</span>
             </div>
-            <div class="flex items-center">
-              <i class="fas fa-thumbs-down text-2xl text-red-500 ml-3"></i>
-              <div>
-                <strong>-1</strong> <span class="text-slate-400">لا يفضل</span>
-              </div>
+            <div class="flex flex-col items-center">
+              <i class="fas fa-thumbs-down text-4xl text-red-400 mb-2"></i>
+              <strong class="text-2xl">-1</strong>
+              <span class="text-gray-400">لا يفضل</span>
             </div>
           </div>
         </div>
 
-        <div class="overflow-x-auto rounded-2xl">
+        <div class="overflow-x-auto rounded-xl">
           <table class="w-full">
             <thead>
-              <tr class="bg-slate-800 text-slate-300">
-                <th class="px-8 py-5 text-lg font-bold">اسم الموظف</th>
-                <th class="px-6 py-5">السبت</th>
-                <th class="px-6 py-5">الأحد</th>
-                <th class="px-6 py-5">الاثنين</th>
-                <th class="px-6 py-5">الثلاثاء</th>
-                <th class="px-6 py-5">الأربعاء</th>
-                <th class="px-6 py-5">الخميس</th>
-                <th class="px-6 py-5">الجمعة</th>
+              <tr class="bg-[var(--secondary-bg)] text-gray-300">
+                <th class="px-6 py-4 text-base font-bold">اسم الموظف</th>
+                <th class="px-4 py-4">السبت</th>
+                <th class="px-4 py-4">الأحد</th>
+                <th class="px-4 py-4">الاثنين</th>
+                <th class="px-4 py-4">الثلاثاء</th>
+                <th class="px-4 py-4">الأربعاء</th>
+                <th class="px-4 py-4">الخميس</th>
+                <th class="px-4 py-4">الجمعة</th>
               </tr>
             </thead>
             <tbody
               id="preferencesBody"
-              class="divide-y divide-slate-700"></tbody>
+              class="divide-y divide-[var(--border-color)]"></tbody>
           </table>
         </div>
 
-        <div class="mt-10 flex flex-col md:flex-row gap-6">
+        <div class="mt-8 flex flex-col md:flex-row gap-4">
           <button
             onclick="solveSchedule()"
-            class="flex-1 bg-gradient-to-r from-cyan-600 to-blue-700 hover:from-cyan-500 hover:to-blue-600 text-white font-bold py-5 px-8 rounded-2xl transition shadow-xl text-xl">
-            <i class="fas fa-search ml-4"></i> إيجاد الجدول الأمثل
+            class="flex-1 bg-[var(--main-color)] hover:bg-[var(--main-hover)] text-white font-bold py-4 px-6 rounded-xl transition shadow-lg text-lg">
+            <i class="fas fa-search ml-3"></i> إيجاد الجدول الأمثل
           </button>
           <button
             onclick="randomFill()"
-            class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-5 px-8 rounded-2xl transition shadow-xl text-xl">
-            <i class="fas fa-dice ml-4"></i> ملء عشوائي
+            class="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-bold py-4 px-6 rounded-xl transition shadow-lg text-lg">
+            <i class="fas fa-dice ml-3"></i> ملء عشوائي
           </button>
           <button
             onclick="clearAll()"
-            class="flex-1 bg-red-800 hover:bg-red-700 text-white font-bold py-5 px-8 rounded-2xl transition shadow-xl text-xl">
-            <i class="fas fa-trash ml-4"></i> مسح الكل
+            class="flex-1 bg-red-700 hover:bg-red-600 text-white font-bold py-4 px-6 rounded-xl transition shadow-lg text-lg">
+            <i class="fas fa-trash ml-3"></i> مسح الكل
           </button>
         </div>
       </div>
 
-      <!-- Results -->
       <div id="resultsSection" class="hidden">
-        <div class="glass rounded-3xl shadow-2xl p-8 mb-10 card-hover">
-          <h2 class="text-3xl font-bold mb-8 flex items-center text-white">
-            <i class="fas fa-chart-bar ml-3 text-3xl"></i>
+        <div class="glass rounded-3xl shadow-2xl p-6 mb-8 card-hover no-print">
+          <h2 class="text-2xl font-bold mb-6 flex items-center text-white">
+            <i class="fas fa-chart-bar ml-3 text-2xl"></i>
             إحصائيات الحل
           </h2>
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div
-              class="bg-slate-800 p-6 rounded-2xl text-center border border-slate-700">
-              <p class="text-lg text-slate-400">مجموع الرضا</p>
+              class="bg-[var(--secondary-bg)] p-5 rounded-xl text-center border border-[var(--border-color)]">
+              <p class="text-base text-gray-400">مجموع الرضا</p>
               <p
                 id="totalSatisfaction"
-                class="text-5xl font-bold text-cyan-400 mt-2">
+                class="text-4xl font-bold text-[var(--main-color)] mt-2">
                 0
               </p>
             </div>
             <div
-              class="bg-slate-800 p-6 rounded-2xl text-center border border-slate-700">
-              <p class="text-lg text-slate-400">متوسط الرضا</p>
+              class="bg-[var(--secondary-bg)] p-5 rounded-xl text-center border border-[var(--border-color)]">
+              <p class="text-base text-gray-400">متوسط الرضا</p>
               <p
                 id="avgSatisfaction"
-                class="text-5xl font-bold text-cyan-400 mt-2">
+                class="text-4xl font-bold text-[var(--main-color)] mt-2">
                 0
               </p>
             </div>
             <div
-              class="bg-slate-800 p-6 rounded-2xl text-center border border-slate-700">
-              <p class="text-lg text-slate-400">حالة القيود</p>
+              class="bg-[var(--secondary-bg)] p-5 rounded-xl text-center border border-[var(--border-color)]">
+              <p class="text-base text-gray-400">حالة القيود</p>
               <p
                 id="constraintStatus"
-                class="text-5xl font-bold text-green-500 mt-2">
+                class="text-4xl font-bold text-green-400 mt-2">
                 <i class="fas fa-check"></i>
               </p>
             </div>
             <div
-              class="bg-slate-800 p-6 rounded-2xl text-center border border-slate-700">
-              <p class="text-lg text-slate-400">وقت الحل</p>
-              <p id="solveTime" class="text-5xl font-bold text-cyan-400 mt-2">
+              class="bg-[var(--secondary-bg)] p-5 rounded-xl text-center border border-[var(--border-color)]">
+              <p class="text-base text-gray-400">وقت الحل</p>
+              <p
+                id="solveTime"
+                class="text-4xl font-bold text-[var(--main-color)] mt-2">
                 0ms
               </p>
             </div>
           </div>
         </div>
 
-        <div class="glass rounded-3xl shadow-2xl p-8 card-hover">
-          <h2 class="text-3xl font-bold mb-8 flex items-center text-white">
-            <i class="fas fa-table ml-3 text-3xl"></i>
+        <div
+          class="glass rounded-3xl shadow-2xl p-6 card-hover"
+          id="scheduleTableContainer">
+          <h2 class="text-2xl font-bold mb-6 flex items-center text-white">
+            <i class="fas fa-table ml-3 text-2xl"></i>
             الجدول الأمثل
           </h2>
-          <div class="overflow-x-auto rounded-2xl">
-            <table class="w-full">
+          <div class="overflow-x-auto rounded-xl">
+            <table class="w-full" id="scheduleTable">
               <thead>
-                <tr class="bg-slate-800 text-slate-300">
-                  <th class="p-3 text-xl">الموظف</th>
-                  <th class="p-2">السبت</th>
-                  <th class="p-2">الأحد</th>
-                  <th class="p-2">الاثنين</th>
-                  <th class="p-2">الثلاثاء</th>
-                  <th class="p-2">الأربعاء</th>
-                  <th class="p-2">الخميس</th>
-                  <th class="p-2">الجمعة</th>
-                  <th class="px-5 py-3">الأيام</th>
-                  <th class="px-5 py-3">الرضا</th>
+                <tr class="bg-[var(--secondary-bg)] text-gray-300">
+                  <th class="px-6 py-4 text-lg">الموظف</th>
+                  <th class="px-4 py-4">السبت</th>
+                  <th class="px-4 py-4">الأحد</th>
+                  <th class="px-4 py-4">الاثنين</th>
+                  <th class="px-4 py-4">الثلاثاء</th>
+                  <th class="px-4 py-4">الأربعاء</th>
+                  <th class="px-4 py-4">الخميس</th>
+                  <th class="px-4 py-4">الجمعة</th>
+                  <th class="px-6 py-4">الأيام</th>
+                  <th class="px-6 py-4">الرضا</th>
                 </tr>
               </thead>
               <tbody
                 id="scheduleBody"
-                class="divide-y divide-slate-700"></tbody>
+                class="divide-y divide-[var(--border-color)]"></tbody>
             </table>
           </div>
 
-          <div class="mt-10 flex flex-col md:flex-row gap-6">
+          <div
+            class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 no-print">
             <button
               onclick="exportToExcel()"
-              class="flex-1 bg-cyan-700 hover:bg-cyan-600 text-white font-bold py-5 px-8 rounded-2xl transition shadow-xl text-xl">
-              <i class="fas fa-file-export ml-4"></i> تصدير إلى Excel
+              class="bg-[var(--main-color)] hover:bg-[var(--main-hover)] text-white font-bold py-4 px-6 rounded-xl transition shadow-lg text-lg">
+              <i class="fas fa-file-export ml-3"></i> تصدير CSV
+            </button>
+            <button
+              onclick="exportAsImage()"
+              class="bg-purple-700 hover:bg-purple-600 text-white font-bold py-4 px-6 rounded-xl transition shadow-lg text-lg">
+              <i class="fas fa-image ml-3"></i> تصدير PNG
+            </button>
+            <button
+              onclick="exportAsPDF()"
+              class="bg-teal-700 hover:bg-teal-600 text-white font-bold py-4 px-6 rounded-xl transition shadow-lg text-lg">
+              <i class="fas fa-file-pdf ml-3"></i> تصدير PDF
             </button>
             <button
               onclick="printSchedule()"
-              class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-5 px-8 rounded-2xl transition shadow-xl text-xl">
-              <i class="fas fa-print ml-4"></i> طباعة
+              class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-4 px-6 rounded-xl transition shadow-lg text-lg">
+              <i class="fas fa-print ml-3"></i> طباعة
             </button>
           </div>
         </div>
+      </div>
+
+      <div id="printSection" style="display: none">
+        <h2>الجدول الأمثل لجدولة الموظفين</h2>
+        <table id="printTable">
+          <thead>
+            <tr>
+              <th>الموظف</th>
+              <th>السبت</th>
+              <th>الأحد</th>
+              <th>الاثنين</th>
+              <th>الثلاثاء</th>
+              <th>الأربعاء</th>
+              <th>الخميس</th>
+              <th>الجمعة</th>
+              <th>عدد الأيام</th>
+              <th>الرضا</th>
+            </tr>
+          </thead>
+          <tbody id="printTableBody"></tbody>
+        </table>
       </div>
     </div>
 
@@ -279,6 +420,15 @@
       let employeeNames = [];
 
       function updateEmployeeCount() {
+        Swal.fire({
+          icon: 'info',
+          title: 'جاري تحديث عدد الموظفين...',
+          timer: 1000,
+          showConfirmButton: false,
+          background: '#23272F',
+          color: '#f8f9fa',
+        });
+
         const numEmployees = parseInt(
           document.getElementById('numEmployees').value
         );
@@ -289,16 +439,15 @@
 
         for (let i = 0; i < numEmployees; i++) {
           const row = document.createElement('tr');
-          row.className = 'hover:bg-slate-800/50 transition';
+          row.className = 'hover:bg-gray-700/30 transition';
 
-          // عمود اسم الموظف
           const nameCell = document.createElement('td');
           nameCell.className = 'p-3';
           const nameInput = document.createElement('input');
           nameInput.type = 'text';
           nameInput.value = `موظف ${i + 1}`;
           nameInput.className =
-            'w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-xl focus:border-cyan-500 focus:outline-none text-lg font-medium';
+            'w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl focus:border-[var(--main-color)] focus:outline-none text-base font-medium';
           nameInput.onchange = () =>
             (employeeNames[i] = nameInput.value || `موظف ${i + 1}`);
           nameCell.appendChild(nameInput);
@@ -311,12 +460,12 @@
 
             const select = document.createElement('select');
             select.className =
-              'w-32 px-2 py-2 bg-slate-700 border border-slate-600 rounded-xl focus:border-cyan-500 focus:outline-none text-lg';
+              'w-full max-w-28 px-4 py-3 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl focus:border-[var(--main-color)] focus:outline-none text-base font-bold text-center';
             select.innerHTML = `
-                        <option value="1">+1</option>
-                        <option value="0" selected>0</option>
-                        <option value="-1">-1</option>
-                    `;
+              <option value="1" style="color:#4ade80;">+1</option>
+              <option value="0" selected style="color:#fbbf24;">0</option>
+              <option value="-1" style="color:#f87171;">-1</option>
+            `;
             select.onchange = () =>
               updatePreference(i, j, parseInt(select.value));
             cell.appendChild(select);
@@ -351,8 +500,8 @@
           title: 'تم الملء العشوائي',
           timer: 1500,
           showConfirmButton: false,
-          background: '#1e293b',
-          color: '#e2e8f0',
+          background: '#23272F',
+          color: '#f8f9fa',
         });
       }
 
@@ -363,19 +512,19 @@
           showCancelButton: true,
           confirmButtonText: 'نعم',
           cancelButtonText: 'لا',
-          background: '#1e293b',
-          color: '#e2e8f0',
+          background: '#23272F',
+          color: '#f8f9fa',
         }).then((result) => {
           if (result.isConfirmed) {
-            updateEmployeeCount(); // يعيد التهيئة بالكامل
+            updateEmployeeCount();
             document.getElementById('resultsSection').classList.add('hidden');
             Swal.fire({
               icon: 'success',
               title: 'تم المسح',
               timer: 1500,
               showConfirmButton: false,
-              background: '#1e293b',
-              color: '#e2e8f0',
+              background: '#23272F',
+              color: '#f8f9fa',
             });
           }
         });
@@ -386,8 +535,8 @@
           title: 'جاري البحث عن أفضل جدول...',
           allowOutsideClick: false,
           didOpen: () => Swal.showLoading(),
-          background: '#1e293b',
-          color: '#e2e8f0',
+          background: '#23272F',
+          color: '#f8f9fa',
         });
 
         const startTime = performance.now();
@@ -409,9 +558,8 @@
               if (worked >= maxWeekly) continue;
 
               const pref = preferences[emp][day];
-              // عقوبة إضافية إذا كان الموظف سيعمل يوم لا يفضله وعدد أيامه كثير نسبيًا
               let penalty = 0;
-              if (pref === -1 && worked >= 3) penalty = -10; // تجنب وضع موظف في يوم يكرهه إذا كان لديه أيام كثيرة بالفعل
+              if (pref === -1 && worked >= 3) penalty = -10;
 
               candidates.push({ emp, score: pref + penalty, worked });
             }
@@ -446,16 +594,16 @@
             text: `مجموع الرضا: ${bestScore}`,
             timer: 3000,
             showConfirmButton: false,
-            background: '#1e293b',
-            color: '#e2e8f0',
+            background: '#23272F',
+            color: '#f8f9fa',
           });
         } else {
           Swal.fire({
             icon: 'error',
             title: 'لا يوجد حل',
             text: 'جرب تعديل القيود أو التفضيلات.',
-            background: '#1e293b',
-            color: '#e2e8f0',
+            background: '#23272F',
+            color: '#f8f9fa',
           });
         }
       }
@@ -481,8 +629,6 @@
               workedDays++;
               const pref = preferences[emp][day];
               score += pref;
-
-              // عقوبة قوية إذا عمل في يوم يكرهه وعدد أيامه ≥ 3
               if (pref === -1 && workedDays >= 3) score -= 5;
             }
           }
@@ -508,10 +654,10 @@
 
         for (let emp = 0; emp < schedule.length; emp++) {
           const row = document.createElement('tr');
-          row.className = 'hover:bg-slate-800/50 transition';
+          row.className = 'hover:bg-gray-700/30 transition';
 
           const nameCell = document.createElement('td');
-          nameCell.className = 'px-8 py-6 font-bold text-xl';
+          nameCell.className = 'px-6 py-5 font-bold text-lg';
           nameCell.textContent = employeeNames[emp];
           row.appendChild(nameCell);
 
@@ -520,7 +666,7 @@
 
           for (let day = 0; day < 7; day++) {
             const cell = document.createElement('td');
-            cell.className = 'px-6 py-6 text-center text-2xl';
+            cell.className = 'px-4 py-5 text-center text-2xl';
 
             if (schedule[emp][day] === 1) {
               daysCount++;
@@ -528,7 +674,7 @@
               empScore += pref;
 
               if (pref === 1) cell.className += ' text-green-400';
-              else if (pref === 0) cell.className += ' text-yellow-400';
+              else if (pref === 0) cell.className += ' text-yellow-300';
               else cell.className += ' text-red-400';
 
               cell.innerHTML = '<i class="fas fa-check"></i>';
@@ -539,12 +685,12 @@
           }
 
           const daysCell = document.createElement('td');
-          daysCell.className = 'px-8 py-6 text-center font-bold text-xl';
+          daysCell.className = 'px-6 py-5 text-center font-bold text-lg';
           daysCell.textContent = daysCount;
           row.appendChild(daysCell);
 
           const scoreCell = document.createElement('td');
-          scoreCell.className = 'px-8 py-6 text-center font-bold text-xl';
+          scoreCell.className = 'px-6 py-5 text-center font-bold text-lg';
           scoreCell.textContent = empScore > 0 ? '+' + empScore : empScore;
           scoreCell.className +=
             empScore > 0
@@ -557,36 +703,99 @@
           tbody.appendChild(row);
         }
 
-        // صف المجموع اليومي
         const summaryRow = document.createElement('tr');
-        summaryRow.className = 'bg-slate-800 font-bold';
+        summaryRow.className = 'bg-[var(--secondary-bg)] font-bold';
 
         const labelCell = document.createElement('td');
-        labelCell.className = 'px-8 py-6 text-center text-lg';
+        labelCell.className = 'px-6 py-5 text-center text-base';
         labelCell.textContent = 'المجموع اليومي';
         summaryRow.appendChild(labelCell);
 
         for (let day = 0; day < 7; day++) {
           const count = schedule.reduce((s, e) => s + e[day], 0);
           const cell = document.createElement('td');
-          cell.className = 'px-6 py-6 text-center text-2xl';
+          cell.className = 'px-4 py-5 text-center text-2xl';
           cell.textContent = count;
           cell.className +=
             count >= parseInt(document.getElementById('minDaily').value)
-              ? ' text-cyan-400'
+              ? ' text-[var(--main-color)]'
               : ' text-red-400';
           summaryRow.appendChild(cell);
         }
 
         const empty1 = document.createElement('td');
-        empty1.className = 'bg-slate-800';
+        empty1.className = 'bg-[var(--secondary-bg)]';
         summaryRow.appendChild(empty1);
+
         const totalCell = document.createElement('td');
-        totalCell.className = 'px-8 py-6 text-center text-3xl text-cyan-400';
+        totalCell.className =
+          'px-6 py-5 text-center text-2xl text-[var(--main-color)]';
         totalCell.textContent = totalScore;
         summaryRow.appendChild(totalCell);
 
         tbody.appendChild(summaryRow);
+
+        // تحديث قسم الطباعة النظيفة
+        const printTbody = document.getElementById('printTableBody');
+        printTbody.innerHTML = '';
+
+        for (let emp = 0; emp < schedule.length; emp++) {
+          const row = document.createElement('tr');
+
+          const nameCell = document.createElement('td');
+          nameCell.textContent = employeeNames[emp];
+          row.appendChild(nameCell);
+
+          let daysCount = 0;
+          let empScore = 0;
+
+          for (let day = 0; day < 7; day++) {
+            const cell = document.createElement('td');
+            if (schedule[emp][day] === 1) {
+              cell.textContent = '✔';
+              daysCount++;
+              empScore += preferences[emp][day];
+            } else {
+              cell.textContent = '—';
+            }
+            row.appendChild(cell);
+          }
+
+          const daysCell = document.createElement('td');
+          daysCell.textContent = daysCount;
+          row.appendChild(daysCell);
+
+          const scoreCell = document.createElement('td');
+          scoreCell.textContent = empScore > 0 ? '+' + empScore : empScore;
+          row.appendChild(scoreCell);
+
+          printTbody.appendChild(row);
+        }
+
+        const printSummaryRow = document.createElement('tr');
+        const printLabelCell = document.createElement('td');
+        printLabelCell.textContent = 'المجموع اليومي';
+        printLabelCell.style.fontWeight = 'bold';
+        printSummaryRow.appendChild(printLabelCell);
+
+        for (let day = 0; day < 7; day++) {
+          const count = schedule.reduce((s, e) => s + e[day], 0);
+          const cell = document.createElement('td');
+          cell.textContent = count;
+          cell.style.fontWeight = 'bold';
+          printSummaryRow.appendChild(cell);
+        }
+
+        const emptyCell = document.createElement('td');
+        emptyCell.style.backgroundColor = '#f0f0f0';
+        printSummaryRow.appendChild(emptyCell);
+
+        const printTotalCell = document.createElement('td');
+        printTotalCell.textContent = totalScore;
+        printTotalCell.style.fontWeight = 'bold';
+        printSummaryRow.appendChild(printTotalCell);
+
+        printTbody.appendChild(printSummaryRow);
 
         document
           .getElementById('resultsSection')
@@ -628,12 +837,126 @@
           title: 'تم التصدير',
           timer: 1500,
           showConfirmButton: false,
-          background: '#1e293b',
-          color: '#e2e8f0',
+          background: '#23272F',
+          color: '#f8f9fa',
         });
       }
 
+      async function exportAsImage() {
+        if (!currentSchedule) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'لا يوجد جدول للتصدير',
+            background: '#23272F',
+            color: '#f8f9fa',
+          });
+          return;
+        }
+
+        Swal.fire({
+          title: 'جاري تصدير الصورة...',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading(),
+          background: '#23272F',
+          color: '#f8f9fa',
+        });
+
+        try {
+          const element = document.getElementById('scheduleTableContainer');
+          const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#191B21',
+          });
+
+          const link = document.createElement('a');
+          link.download = 'جدول_الموظفين.png';
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+
+          Swal.fire({
+            icon: 'success',
+            title: 'تم تصدير الصورة بنجاح',
+            timer: 1500,
+            showConfirmButton: false,
+            background: '#23272F',
+            color: '#f8f9fa',
+          });
+        } catch (e) {
+          Swal.fire({
+            icon: 'error',
+            title: 'فشل تصدير الصورة',
+            background: '#23272F',
+            color: '#f8f9fa',
+          });
+        }
+      }
+
+      async function exportAsPDF() {
+        if (!currentSchedule) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'لا يوجد جدول للتصدير',
+            background: '#23272F',
+            color: '#f8f9fa',
+          });
+          return;
+        }
+
+        Swal.fire({
+          title: 'جاري تصدير PDF...',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading(),
+          background: '#23272F',
+          color: '#f8f9fa',
+        });
+
+        try {
+          const { jsPDF } = window.jspdf;
+          const element = document.getElementById('scheduleTableContainer');
+          const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#191B21',
+          });
+
+          const imgData = canvas.toDataURL('image/png');
+          const pdf = new jsPDF('l', 'mm', 'a4');
+          const imgWidth = 297;
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+          pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+          pdf.save('جدول_الموظفين.pdf');
+
+          Swal.fire({
+            icon: 'success',
+            title: 'تم تصدير PDF بنجاح',
+            timer: 1500,
+            showConfirmButton: false,
+            background: '#23272F',
+            color: '#f8f9fa',
+          });
+        } catch (e) {
+          Swal.fire({
+            icon: 'error',
+            title: 'فشل تصدير PDF',
+            background: '#23272F',
+            color: '#f8f9fa',
+          });
+        }
+      }
+
       function printSchedule() {
+        if (!currentSchedule) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'لا يوجد جدول للطباعة',
+            text: 'يرجى إيجاد الجدول الأمثل أولاً',
+            background: '#23272F',
+            color: '#f8f9fa',
+          });
+          return;
+        }
         window.print();
       }
 
